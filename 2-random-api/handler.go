@@ -12,7 +12,6 @@ func (h *RandomVarHandler) getRandomVar() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		randVar := byte(rand.IntN(6) + 1)
 		w.Header().Set("Content-Type", "text/plain")
-
 		fmt.Fprintf(w, "%d", randVar)
 	}
 }
