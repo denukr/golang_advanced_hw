@@ -19,7 +19,7 @@ func NewVerifyHandler(r *http.ServeMux, deps *VerifyHandlerDeps) {
 		Config: deps.Config,
 	}
 	r.HandleFunc("POST /send", handler.Send())
-	r.HandleFunc("GET /verify/{hash}", handler.Send())
+	r.HandleFunc("GET /verify/{hash}", handler.Verify())
 }
 
 func (h *VerifyHandler) Send() http.HandlerFunc {
