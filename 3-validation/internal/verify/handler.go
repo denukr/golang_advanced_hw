@@ -44,13 +44,11 @@ func (h *VerifyHandler) Send() http.HandlerFunc {
 
 		fmt.Println(JsonStorage)
 
-		SendEmail(generatedHash)
+		SendEmail(generatedHash, h.Config)
 
-		data := SendResponse{
-			Email:   h.Config.Email,
-			Address: h.Config.Address,
-		}
-		resp.JsonResp(w, data, 201)
+		resp.JsonResp(w, map[string]string{
+			"status": "ok",
+		}, 201)
 	}
 }
 
