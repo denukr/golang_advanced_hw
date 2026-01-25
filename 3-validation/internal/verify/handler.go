@@ -1,9 +1,13 @@
 package verify
 
 import (
+	"fmt"
 	"go/email-verify/config"
+	"go/email-verify/pkg/json"
+	"go/email-verify/pkg/req"
 	"go/email-verify/pkg/resp"
 	"net/http"
+	"time"
 )
 
 type VerifyHandler struct {
@@ -24,20 +28,45 @@ func NewVerifyHandler(r *http.ServeMux, deps *VerifyHandlerDeps) {
 
 func (h *VerifyHandler) Send() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		data := SendResponse{
-			Email:   h.Config.Email,
-			Address: h.Config.Address,
+
+		sendReq, err := req.HandleBody[SendRequest](w, r)
+		if err != nil {
+			resp.JsonResp(w, err.Error(), 400)
+			return
 		}
-		resp.JsonResp(w, data, 201)
+
+		JsonStorage := json.NewJsonStorage("storage.json")
+		generatedHash := Hash(time.Now().String())
+		JsonStorage.Write(json.Data{
+			Email: sendReq.Email,
+			Hash:  generatedHash,
+		})
+
+		fmt.Println(JsonStorage)
+
+		SendEmail(generatedHash, h.Config)
+
+		resp.JsonResp(w, map[string]string{
+			"status": "ok",
+		}, 201)
 	}
 }
 
 func (h *VerifyHandler) Verify() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		data := SendResponse{
-			Email:   h.Config.Email,
-			Address: h.Config.Address,
+		hashFromUrl := r.PathValue("hash")
+		JsonStorage := json.NewJsonStorage("storage.json")
+		if err := JsonStorage.Read(); err != nil {
+			resp.JsonResp(w, "Ошибка чтения хранилища: "+err.Error(), 500)
+			return
 		}
-		resp.JsonResp(w, data, 201)
+		for _, v := range JsonStorage.Data {
+			if hashFromUrl == v.Hash {
+				JsonStorage.Remove(v.Hash)
+				resp.JsonResp(w, true, 201)
+				return
+			}
+		}
+		resp.JsonResp(w, false, 400)
 	}
 }

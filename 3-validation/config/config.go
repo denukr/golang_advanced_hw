@@ -11,18 +11,20 @@ type Config struct {
 }
 
 type VerifyConfig struct {
-	Email    string
-	Password string
-	Address  string
+	SenderEmail   string
+	RecieverEmail string
+	Password      string
+	Address       string
 }
 
 func Load() *Config {
 	godotenv.Load(".env")
 	return &Config{
 		Verify: &VerifyConfig{
-			Email:    os.Getenv("Email"),
-			Password: os.Getenv("Password"),
-			Address:  os.Getenv("Address"),
+			SenderEmail:   os.Getenv("SenderEmail"),
+			RecieverEmail: os.Getenv("RecieverEmail"),
+			Password:      os.Getenv("Password"),
+			Address:       os.Getenv("Address"),
 		},
 	}
 }
