@@ -42,6 +42,8 @@ func (h *VerifyHandler) Send() http.HandlerFunc {
 			Hash:  generatedHash,
 		})
 
+		fmt.Println(JsonStorage)
+
 		SendEmail(generatedHash)
 
 		data := SendResponse{
@@ -54,20 +56,19 @@ func (h *VerifyHandler) Send() http.HandlerFunc {
 
 func (h *VerifyHandler) Verify() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		_, err := req.HandleBody[VerifyRequest](w, r)
-		if err != nil {
-			resp.JsonResp(w, err.Error(), 400)
-			return
-		}
+		hashFromUrl := r.PathValue("hash")
 		JsonStorage := json.NewJsonStorage("storage.json")
 		if err := JsonStorage.Read(); err != nil {
 			resp.JsonResp(w, "Ошибка чтения хранилища: "+err.Error(), 500)
 			return
 		}
-		fmt.Println(JsonStorage)
-		for i, v := range JsonStorage.Data {
-			fmt.Println(i, v)
+		for _, v := range JsonStorage.Data {
+			if hashFromUrl == v.Hash {
+				JsonStorage.Remove(v.Hash)
+				resp.JsonResp(w, true, 201)
+				return
+			}
 		}
-		resp.JsonResp(w, "", 201)
+		resp.JsonResp(w, false, 400)
 	}
 }

@@ -40,36 +40,35 @@ func (storage *JsonStorage) buildIndex() {
 	}
 }
 
-// Read загружает данные из файла в структуру и строит индекс.
 func (storage *JsonStorage) Read() error {
-	if _, err := os.Stat(storage.fileName); os.IsNotExist(err) {
-		return err
-	}
-
 	file, err := os.Open(storage.fileName)
 	if err != nil {
-		log.Printf("Ошибка при открытии файла: %v", err)
+		if os.IsNotExist(err) {
+			// Если файла нет — это не ошибка, просто данных пока 0
+			return nil
+		}
 		return err
 	}
 	defer file.Close()
 
 	data, err := io.ReadAll(file)
 	if err != nil {
-		log.Printf("Ошибка при чтении файла: %v", err)
 		return err
 	}
 
-	// ВАЖНО: Очищаем текущие данные перед загрузкой из файла,
-	// чтобы json.Unmarshal не дублировал записи в слайсе.
-	storage.Data = []Data{}
+	// ЕСЛИ ФАЙЛ ПУСТОЙ — инициализируем пустые данные и выходим без ошибки
+	if len(data) == 0 {
+		storage.Data = []Data{}
+		storage.index = make(map[string]int)
+		return nil
+	}
 
+	storage.Data = []Data{}
 	err = json.Unmarshal(data, storage)
 	if err != nil {
-		log.Printf("Ошибка парсинга JSON: %v", err)
-		return err
+		return err // Здесь будет ошибка, если в файле мусор вместо JSON
 	}
 
-	// Пересобираем индекс на основе свежих данных
 	storage.buildIndex()
 	return nil
 }
@@ -104,4 +103,26 @@ func (storage *JsonStorage) Write(newData Data) {
 	if err != nil {
 		log.Printf("Ошибка при записи в файл: %v", err)
 	}
+}
+
+func (storage *JsonStorage) WriteAll() {
+	fileData, err := json.MarshalIndent(storage, "", "  ")
+	if err != nil {
+		log.Printf("Ошибка сериализации JSON: %v", err)
+		return
+	}
+	err = os.WriteFile(storage.fileName, fileData, 0644)
+	if err != nil {
+		log.Printf("Ошибка при записи в файл: %v", err)
+	}
+}
+
+func (storage *JsonStorage) Remove(hash string) {
+	for _, v := range storage.Data {
+		if v.Hash == hash {
+			storage.Data = append(storage.Data[:storage.index[v.Email]], storage.Data[storage.index[v.Email]+1:]...)
+			break
+		}
+	}
+	storage.WriteAll()
 }
