@@ -1,7 +1,6 @@
 package verify
 
 import (
-	"fmt"
 	"go/email-verify/config"
 	"go/email-verify/pkg/json"
 	"go/email-verify/pkg/req"
@@ -42,9 +41,13 @@ func (h *VerifyHandler) Send() http.HandlerFunc {
 			Hash:  generatedHash,
 		})
 
-		fmt.Println(JsonStorage)
-
-		SendEmail(generatedHash, h.Config)
+		err = SendEmail(generatedHash, h.Config)
+		if err != nil {
+			resp.JsonResp(w, map[string]string{
+				"status": "error",
+			}, 400)
+			return
+		}
 
 		resp.JsonResp(w, map[string]string{
 			"status": "ok",
