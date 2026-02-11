@@ -34,12 +34,13 @@ func (lm *LogMiddleware) Log(next http.Handler) http.Handler {
 			ResponseWriter: w,
 			StatusCode:     http.StatusOK,
 		}
+
+		next.ServeHTTP(wr, r)
 		lm.Logger.WithFields(logrus.Fields{
 			"Method":     r.Method,
 			"Host":       r.Host,
 			"Path":       r.URL.Path,
 			"Stats code": wr.StatusCode,
-		}).Info("Request successful")
-		next.ServeHTTP(wr, r)
+		}).Info("")
 	})
 }
