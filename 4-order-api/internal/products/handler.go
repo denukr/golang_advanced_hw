@@ -29,6 +29,8 @@ func NewProductHandler(router *http.ServeMux, deps *ProductHandlerDeps) {
 	router.HandleFunc("POST /product", h.Create())
 	router.HandleFunc("PATCH /product/{id}", h.Update())
 	router.HandleFunc("DELETE /product/{id}", h.Delete())
+
+	router.HandleFunc("GET /products", h.GetAll())
 }
 
 func (h *ProductHandler) Delete() http.HandlerFunc {
@@ -37,12 +39,12 @@ func (h *ProductHandler) Delete() http.HandlerFunc {
 		id, err := strconv.ParseUint(idString, 10, 32)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
-			return 
+			return
 		}
 		err = h.ProductRepo.Delete(uint(id))
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return 
+			return
 		}
 	}
 }
@@ -52,7 +54,7 @@ func (h *ProductHandler) Create() http.HandlerFunc {
 		payload, err := req.HandleBody[ProductCreateRequest](w, r)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
-			return 
+			return
 		}
 		product := NewProduct(payload.Name, payload.Description)
 		createdProduct, err := h.ProductRepo.Create(product)
@@ -72,7 +74,7 @@ func (h *ProductHandler) GetByID() http.HandlerFunc {
 		id, err := strconv.ParseUint(idString, 10, 32)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
-			return 
+			return
 		}
 		product, err = h.ProductRepo.GetById(uint(id))
 		if err != nil {
@@ -81,7 +83,17 @@ func (h *ProductHandler) GetByID() http.HandlerFunc {
 		}
 		resp.JsonResp(w, product, 200)
 	}
+}
 
+func (h *ProductHandler) GetAll() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		products, err := h.ProductRepo.GetAll()
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		resp.JsonResp(w, products, 200)
+	}
 }
 
 func (h *ProductHandler) Update() http.HandlerFunc {
@@ -91,7 +103,7 @@ func (h *ProductHandler) Update() http.HandlerFunc {
 		id, err := strconv.ParseUint(idString, 10, 32)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
-			return 
+			return
 		}
 		updatedProduct, err := h.ProductRepo.Update(&Product{
 			Model: gorm.Model{
@@ -102,7 +114,7 @@ func (h *ProductHandler) Update() http.HandlerFunc {
 		})
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return 
+			return
 		}
 		resp.JsonResp(w, updatedProduct, http.StatusOK)
 	}

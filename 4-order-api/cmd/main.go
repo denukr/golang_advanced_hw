@@ -4,6 +4,7 @@ import (
 	"golang-adv/4-order-api/configs"
 	"golang-adv/4-order-api/internal/products"
 	"golang-adv/4-order-api/pkg/db"
+	"golang-adv/4-order-api/pkg/middleware"
 	"log"
 	"net/http"
 )
@@ -21,9 +22,11 @@ func main() {
 		ProductRepo: productRepo,
 	})
 
+	mw := middleware.NewLogMiddleware()
+
 	server := http.Server{
 		Addr:    ":8081",
-		Handler: router,
+		Handler: mw.Log(router),
 	}
 
 	log.Println("Server is starting on port 8081")
