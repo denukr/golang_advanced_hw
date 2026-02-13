@@ -2,11 +2,13 @@ package auth
 
 import (
 	"errors"
+	"fmt"
 	"golang-adv/4-order-api/configs"
 	"golang-adv/4-order-api/pkg/jwt"
 	"golang-adv/4-order-api/pkg/req"
 	"golang-adv/4-order-api/pkg/resp"
 	"net/http"
+	"time"
 )
 
 type AuthHandlerDeps struct {
@@ -57,6 +59,10 @@ func (h *AuthHandler) Verify() http.HandlerFunc {
 			return
 		}
 		if user.Code != body.Code {
+			http.Error(w, errors.New(ErrIncorrectCode).Error(), http.StatusBadRequest)
+			return
+		}
+		if time.Now().After(user.CodeExpiresAt) {
 			http.Error(w, errors.New(ErrIncorrectCode).Error(), http.StatusBadRequest)
 			return
 		}

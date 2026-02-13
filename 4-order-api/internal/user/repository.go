@@ -3,6 +3,7 @@ package user
 import (
 	"errors"
 	"golang-adv/4-order-api/pkg/db"
+	"time"
 
 	"gorm.io/gorm"
 )
@@ -19,9 +20,10 @@ func NewUserRepository(db *db.Db) *UserRepository {
 
 func (repo *UserRepository) Create(phone, code, sessionId string) (*User, error) {
 	var user User = User{
-		Phone:     phone,
-		SessionId: sessionId,
-		Code:      code,
+		Phone:         phone,
+		SessionId:     sessionId,
+		Code:          code,
+		CodeExpiresAt: time.Now().Add(5 * time.Minute),
 	}
 	result := repo.Database.Create(&user)
 	if result.Error != nil {

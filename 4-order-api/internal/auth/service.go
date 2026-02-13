@@ -4,6 +4,7 @@ import (
 	"errors"
 	userPkg "golang-adv/4-order-api/internal/user"
 	"golang-adv/4-order-api/pkg/session"
+	"time"
 
 	"gorm.io/gorm"
 )
@@ -36,9 +37,10 @@ func (service *AuthService) AuthByPhone(phone string) (string, error) {
 		return "", err
 	}
 	user, err = service.UserRepository.Update(&userPkg.User{
-		Model:     gorm.Model{ID: user.ID},
-		SessionId: sessionId,
-		Code:      GenerateCode(4),
+		Model:         gorm.Model{ID: user.ID},
+		SessionId:     sessionId,
+		Code:          GenerateCode(4),
+		CodeExpiresAt: time.Now().Add(5 * time.Minute),
 	})
 	if err != nil {
 		return "", err
