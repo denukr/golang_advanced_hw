@@ -3,6 +3,7 @@ package products
 import (
 	"errors"
 	"golang-adv/4-order-api/pkg/db"
+	"log"
 
 	"gorm.io/gorm/clause"
 )
@@ -55,4 +56,15 @@ func (repo *ProductRepository) GetById(id uint) (*Product, error) {
 		return nil, result.Error
 	}
 	return &product, nil
+}
+
+func (repo *ProductRepository) GetAll() ([]Product, error) {
+	var products []Product
+	log.Println("Start")
+	result := repo.Database.Find(&products)
+	log.Println(result)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return products, nil
 }
