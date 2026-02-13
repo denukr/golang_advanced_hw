@@ -7,6 +7,7 @@ type User struct {
 	Phone     string         `json:"phone" gorm:"uniqueIndex:idx_phone_deleted"`
 	DeletedAt gorm.DeletedAt `gorm:"uniqueIndex:idx_phone_deleted"`
 	SessionId string         `json:"sessionId" gorm:"uniqueIndex"`
+	Code      string         `json:"code"`
 }
 
 func NewUser(phone, sessionId string) *User {

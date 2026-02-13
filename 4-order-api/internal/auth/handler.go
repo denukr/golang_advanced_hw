@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"errors"
 	"golang-adv/4-order-api/configs"
 	"golang-adv/4-order-api/pkg/jwt"
 	"golang-adv/4-order-api/pkg/req"
@@ -53,6 +54,10 @@ func (h *AuthHandler) Verify() http.HandlerFunc {
 		user, err := h.AuthService.GetBySessionId(body.SessionId)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		if user.Code != body.Code {
+			http.Error(w, errors.New(ErrIncorrectCode).Error(), http.StatusBadRequest)
 			return
 		}
 		j := jwt.NewJWT(h.Config.AuthConf.Key)

@@ -17,10 +17,11 @@ func NewUserRepository(db *db.Db) *UserRepository {
 	}
 }
 
-func (repo *UserRepository) Create(phone, sessionId string) (*User, error) {
+func (repo *UserRepository) Create(phone, code, sessionId string) (*User, error) {
 	var user User = User{
 		Phone:     phone,
 		SessionId: sessionId,
+		Code:      code,
 	}
 	result := repo.Database.Create(&user)
 	if result.Error != nil {
