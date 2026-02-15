@@ -2,8 +2,10 @@ package products
 
 import (
 	"golang-adv/4-order-api/configs"
+	"golang-adv/4-order-api/pkg/middleware"
 	"golang-adv/4-order-api/pkg/req"
 	"golang-adv/4-order-api/pkg/resp"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -25,12 +27,12 @@ func NewProductHandler(router *http.ServeMux, deps *ProductHandlerDeps) {
 		Configs:     deps.Configs,
 		ProductRepo: deps.ProductRepo,
 	}
-	router.HandleFunc("GET /product/{id}", h.GetByID())
-	router.HandleFunc("POST /product", h.Create())
-	router.HandleFunc("PATCH /product/{id}", h.Update())
-	router.HandleFunc("DELETE /product/{id}", h.Delete())
+	router.Handle("GET /product/{id}", middleware.IsAuthed(h.GetByID(), deps.Configs))
+	router.Handle("POST /product", middleware.IsAuthed(h.Create(), deps.Configs))
+	router.Handle("PATCH /product/{id}", middleware.IsAuthed(h.Update(), deps.Configs))
+	router.Handle("DELETE /product/{id}", middleware.IsAuthed(h.Delete(), deps.Configs))
 
-	router.HandleFunc("GET /products", h.GetAll())
+	router.Handle("GET /products", middleware.IsAuthed(h.GetAll(), deps.Configs))
 }
 
 func (h *ProductHandler) Delete() http.HandlerFunc {
@@ -87,6 +89,7 @@ func (h *ProductHandler) GetByID() http.HandlerFunc {
 
 func (h *ProductHandler) GetAll() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		log.Println("User with phone number", r.Context().Value(middleware.Phone))
 		products, err := h.ProductRepo.GetAll()
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)

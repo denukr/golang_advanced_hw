@@ -2,7 +2,6 @@ package auth
 
 import (
 	"errors"
-	"fmt"
 	"golang-adv/4-order-api/configs"
 	"golang-adv/4-order-api/pkg/jwt"
 	"golang-adv/4-order-api/pkg/req"
